@@ -1,0 +1,54 @@
+{
+  "builders": [{
+    "type": "virtualbox-iso",
+    "guest_os_type": "Fedora_64",
+    "iso_url": "{{user `mirror`}}/releases/test/22_Alpha/Server/x86_64/iso/Fedora-Server-netinst-x86_64-22_Alpha.iso",
+    "iso_checksum": "ae0ec4666cfe84507d3ee7c03dcaf0263eff5fbd0aa717245ffb544233974bcd",
+    "iso_checksum_type": "sha256",
+    "output_directory": "output-fedora-22-x86_64",
+    "vm_name": "packer-fedora-22-x86_64",
+    "disk_size": "{{user `disk_size`}}",
+    "headless": "{{user `headless`}}",
+    "http_directory": "http",
+    "boot_wait": "5s",
+    "boot_command": [
+      "<esc>",
+      "<wait>",
+      "linux inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/fedora-22/anaconda-ks.cfg biosdevname=0 net.ifnames=0",
+      "<enter>"
+    ],
+    "ssh_wait_timeout": "60m",
+    "ssh_username": "vagrant",
+    "ssh_password": "vagrant",
+    "shutdown_command": "sudo systemctl poweroff",
+    "vboxmanage": [
+      ["modifyvm", "{{.Name}}", "--memory", "{{user `memory`}}"],
+      ["modifyvm", "{{.Name}}", "--cpus", "{{user `cpus`}}"]
+    ]
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "scripts": [
+      "scripts/fedora-22/virtualbox.sh",
+      "scripts/common/vagrant.sh",
+      "scripts/common/sshd.sh",
+      "scripts/fedora-22/network.sh",
+      "scripts/fedora-22/locale.sh",
+      "scripts/fedora-22/cleanup.sh",
+      "scripts/common/minimize.sh"
+    ]
+  }],
+  "post-processors": [{
+    "type": "vagrant",
+    "compression_level": "{{user `compression_level`}}",
+    "output": "fedora-22-x86_64.box"
+  }],
+  "variables": {
+    "compression_level": 6,
+    "cpus": "2",
+    "disk_size": 15000,
+    "headless": true,
+    "memory": "1024",
+    "mirror": "http://mirror.cs.pitt.edu/fedora/linux"
+  }
+}
